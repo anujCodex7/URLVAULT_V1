@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>URL Vault</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap');
+
+:root {
+  --bg:        #0d0d0b;
+  --surface:   #141410;
+  --card:      #1a1a14;
+  --border:    #3a3820;
+  --border2:   #524e2c;
+  --amber:     #e8b84b;
+  --amber-dim: #8a6a1f;
+  --amber-glow:#f5d470;
+  --green:     #5aad6e;
+  --red:       #c0503a;
+  --muted:     #6b6540;
+  --text:      #d4c87a;
+  --text2:     #9a9060;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  width: 320px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0,0,0,0.14) 0px, rgba(0,0,0,0.14) 1px,
+    transparent 1px, transparent 3px
+  );
+  pointer-events: none;
+  z-index: 99;
+}
+
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border2);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  font-family: 'VT323', monospace;
+  font-size: 1.6rem;
+  color: var(--amber-glow);
+  letter-spacing: 0.1em;
+  text-shadow: 0 0 10px rgba(232,184,75,0.45);
+  line-height: 1;
+}
+
+.logo-sub {
+  font-size: 0.56rem;
+  color: var(--muted);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.section {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-label {
+  font-size: 0.58rem;
+  letter-spacing: 0.28em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.captured-site {
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-left: 3px solid var(--amber-dim);
+  padding: 8px 10px;
+}
+
+.captured-name {
+  font-size: 0.88rem;
+  color: var(--amber-glow);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 3px;
+}
+
+.captured-url {
+  font-size: 0.68rem;
+  color: var(--text2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.field { margin-bottom: 8px; }
+
+.field label {
+  display: block;
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.8rem;
+  padding: 6px 8px;
+  outline: none;
+  border-radius: 2px;
+  appearance: none;
+}
+
+.field input:focus,
+.field select:focus {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 2px rgba(232,184,75,0.1);
+}
+
+.field select option { background: #1a1a14; }
+
+.btn-row { display: flex; gap: 6px; }
+
+.btn {
+  flex: 1;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  padding: 7px 10px;
+  border: 1px solid;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-radius: 2px;
+  text-transform: uppercase;
+}
+
+.btn-primary {
+  background: var(--amber-dim);
+  border-color: var(--amber);
+  color: var(--amber-glow);
+}
+.btn-primary:hover {
+  background: var(--amber);
+  color: var(--bg);
+  box-shadow: 0 0 8px rgba(232,184,75,0.3);
+}
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: var(--border2);
+  color: var(--text2);
+}
+.btn-ghost:hover {
+  border-color: var(--text2);
+  color: var(--text);
+}
+
+.feedback {
+  padding: 8px 14px;
+  font-size: 0.72rem;
+  border-top: 1px solid var(--border);
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  transition: color 0.2s;
+}
+.feedback.success { color: var(--green); }
+.feedback.error   { color: var(--red); }
+
+.recent-section { padding: 8px 14px 12px; }
+
+.recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 140px;
+  overflow-y: auto;
+}
+.recent-list::-webkit-scrollbar { width: 4px; }
+.recent-list::-webkit-scrollbar-track { background: transparent; }
+.recent-list::-webkit-scrollbar-thumb { background: var(--border2); }
+
+.recent-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  gap: 8px;
+}
+
+.recent-item-text { min-width: 0; flex: 1; }
+.recent-item-name {
+  font-size: 0.72rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.recent-item-url {
+  font-size: 0.62rem;
+  color: var(--text2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recent-item-cat {
+  font-size: 0.55rem;
+  padding: 2px 5px;
+  border: 1px solid var(--border2);
+  color: var(--muted);
+  text-transform: uppercase;
+  white-space: nowrap;
+  border-radius: 2px;
+}
+
+.empty-recent {
+  font-size: 0.7rem;
+  color: var(--border2);
+  text-align: center;
+  padding: 12px 0;
+  letter-spacing: 0.1em;
+}
+
+.popup-footer {
+  padding: 7px 14px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.58rem;
+  color: var(--border2);
+  letter-spacing: 0.12em;
+}
+
+.open-vault-btn {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.58rem;
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  cursor: pointer;
+  padding: 3px 7px;
+  letter-spacing: 0.08em;
+  border-radius: 2px;
+  transition: all 0.12s;
+}
+.open-vault-btn:hover {
+  border-color: var(--amber-dim);
+  color: var(--amber);
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="logo">URL VAULT</div>
+    <div class="logo-sub">Link Capture</div>
+  </div>
+  <div class="status-dot" title="Active"></div>
+</div>
+
+<div class="section">
+  <div class="section-label">// Current Page</div>
+  <div class="captured-site">
+    <div class="captured-name" id="disp-name">Loading...</div>
+    <div class="captured-url" id="disp-url">—</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-label">// Save As</div>
+  <div class="field">
+    <label for="f-name">Name</label>
+    <input id="f-name" type="text" placeholder="Site name...">
+  </div>
+  <div class="field">
+    <label for="f-cat">Category</label>
+    <select id="f-cat">
+      <option value="work">Work</option>
+      <option value="social">Social</option>
+      <option value="tools">Tools</option>
+      <option value="learn">Learn</option>
+      <option value="other">Other</option>
+    </select>
+  </div>
+  <div class="field">
+    <label for="f-note">Note (optional)</label>
+    <input id="f-note" type="text" placeholder="Short description...">
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" id="save-btn">[ SAVE TO VAULT ]</button>
+    <button class="btn btn-ghost" id="reset-btn">[ RESET ]</button>
+  </div>
+</div>
+
+<div class="feedback" id="feedback">Ready to capture.</div>
+
+<div class="recent-section">
+  <div class="section-label" style="margin-bottom:6px">// Recent Saves</div>
+  <div class="recent-list" id="recent-list"></div>
+</div>
+
+<div class="popup-footer">
+  <span>DATA: CHROME STORAGE</span>
+  <button class="open-vault-btn" id="open-vault-btn">OPEN VAULT ↗</button>
+</div>
+
+<script src="popup.js"></script>
+</body>
+</html>

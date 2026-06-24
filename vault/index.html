@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>URL VAULT — Your Link Archive</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Special+Elite&family=VT323&display=swap');
+
+:root {
+  --bg:        #0d0d0b;
+  --surface:   #141410;
+  --card:      #1a1a14;
+  --border:    #3a3820;
+  --border2:   #524e2c;
+  --amber:     #e8b84b;
+  --amber-dim: #8a6a1f;
+  --amber-glow:#f5d470;
+  --green:     #5aad6e;
+  --red:       #c0503a;
+  --muted:     #6b6540;
+  --text:      #d4c87a;
+  --text2:     #9a9060;
+  --scanline:  rgba(0,0,0,0.18);
+  --radius:    2px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Share Tech Mono', monospace;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* CRT scanlines overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    var(--scanline) 0px,
+    var(--scanline) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Subtle vignette */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.55) 100%);
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* ─── HEADER ─── */
+header {
+  border-bottom: 1px solid var(--border2);
+  padding: 0 2rem;
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.logo {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+
+.logo-main {
+  font-family: 'VT323', monospace;
+  font-size: 2.2rem;
+  color: var(--amber-glow);
+  letter-spacing: 0.12em;
+  text-shadow: 0 0 12px rgba(232,184,75,0.5);
+}
+
+.logo-sub {
+  font-size: 0.62rem;
+  color: var(--muted);
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+}
+
+.header-stats {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.72rem;
+  color: var(--text2);
+}
+
+.stat-item span {
+  color: var(--amber);
+  font-size: 1rem;
+}
+
+/* ─── MAIN ─── */
+main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* ─── SECTION LABEL ─── */
+.section-label {
+  font-size: 0.62rem;
+  letter-spacing: 0.35em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ─── ADD FORM ─── */
+.form-block {
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-top: 2px solid var(--amber-dim);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.form-row-full {
+  grid-column: 1 / -1;
+}
+
+.field label {
+  display: block;
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 0.3rem;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.85rem;
+  padding: 0.5rem 0.7rem;
+  outline: none;
+  border-radius: var(--radius);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  appearance: none;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 2px rgba(232,184,75,0.12);
+}
+
+.field select option { background: #1a1a14; }
+
+.field textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+/* ─── BUTTONS ─── */
+.btn-row {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  padding: 0.5rem 1.1rem;
+  border: 1px solid;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-radius: var(--radius);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-transform: uppercase;
+}
+
+.btn-primary {
+  background: var(--amber-dim);
+  border-color: var(--amber);
+  color: var(--amber-glow);
+}
+.btn-primary:hover {
+  background: var(--amber);
+  color: var(--bg);
+  box-shadow: 0 0 10px rgba(232,184,75,0.3);
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: var(--border2);
+  color: var(--text2);
+}
+.btn-ghost:hover {
+  border-color: var(--text2);
+  color: var(--text);
+}
+
+/* ─── SEARCH + FILTER BAR ─── */
+.toolbar {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 1.2rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 180px;
+}
+
+.search-prefix {
+  position: absolute;
+  left: 0.7rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--amber-dim);
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+
+.search-wrap input {
+  width: 100%;
+  padding-left: 2.2rem;
+  background: var(--card);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.85rem;
+  height: 36px;
+  outline: none;
+  border-radius: var(--radius);
+}
+.search-wrap input:focus {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 2px rgba(232,184,75,0.1);
+}
+
+.filter-chips {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.chip {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.68rem;
+  padding: 0.28rem 0.7rem;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text2);
+  cursor: pointer;
+  border-radius: var(--radius);
+  letter-spacing: 0.08em;
+  transition: all 0.12s;
+  text-transform: uppercase;
+}
+.chip:hover { border-color: var(--amber-dim); color: var(--text); }
+.chip.active { background: var(--amber-dim); border-color: var(--amber); color: var(--amber-glow); }
+
+/* ─── CARDS ─── */
+.vault-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.vault-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--amber-dim);
+  padding: 0.85rem 1rem;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.6rem 1rem;
+  align-items: start;
+  transition: border-color 0.15s, background 0.15s;
+  position: relative;
+}
+
+.vault-card:hover {
+  border-color: var(--border2);
+  border-left-color: var(--amber);
+  background: #1e1e17;
+}
+
+.vault-card.cat-work    { border-left-color: #5aad6e; }
+.vault-card.cat-social  { border-left-color: #7a86c8; }
+.vault-card.cat-tools   { border-left-color: #c0833a; }
+.vault-card.cat-learn   { border-left-color: #a05aad; }
+.vault-card.cat-other   { border-left-color: var(--amber-dim); }
+
+.vault-card.cat-work:hover   { border-left-color: #7dcf8f; }
+.vault-card.cat-social:hover { border-left-color: #9ba6e0; }
+.vault-card.cat-tools:hover  { border-left-color: #e09a50; }
+.vault-card.cat-learn:hover  { border-left-color: #c07acd; }
+.vault-card.cat-other:hover  { border-left-color: var(--amber); }
+
+.card-index {
+  font-family: 'VT323', monospace;
+  font-size: 1.2rem;
+  color: var(--muted);
+  min-width: 2rem;
+  text-align: right;
+  padding-top: 1px;
+  user-select: none;
+}
+
+.card-body { min-width: 0; }
+
+.card-name {
+  font-family: 'Special Elite', cursive;
+  font-size: 1rem;
+  color: var(--amber-glow);
+  margin-bottom: 0.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-url {
+  font-size: 0.75rem;
+  color: var(--text2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 0.35rem;
+}
+
+.card-url a {
+  color: var(--text2);
+  text-decoration: none;
+}
+.card-url a:hover {
+  color: var(--amber);
+  text-decoration: underline;
+}
+
+.card-meta {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.cat-badge {
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid;
+  text-transform: uppercase;
+  border-radius: var(--radius);
+}
+
+.cat-badge.work   { color: #5aad6e; border-color: #3a7a4a; }
+.cat-badge.social { color: #7a86c8; border-color: #4a5498; }
+.cat-badge.tools  { color: #c0833a; border-color: #8a5a1f; }
+.cat-badge.learn  { color: #a05aad; border-color: #6a3a7a; }
+.cat-badge.other  { color: var(--amber-dim); border-color: var(--border2); }
+
+.card-note {
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+
+.card-date {
+  font-size: 0.62rem;
+  color: var(--border2);
+}
+
+.card-actions {
+  display: flex;
+  gap: 0.3rem;
+  align-items: flex-start;
+}
+
+.icon-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-family: 'Share Tech Mono', monospace;
+  transition: all 0.12s;
+  border-radius: var(--radius);
+}
+.icon-btn:hover { border-color: var(--border2); color: var(--text); }
+.icon-btn.open:hover { border-color: var(--green); color: var(--green); }
+.icon-btn.copy:hover { border-color: var(--amber); color: var(--amber); }
+.icon-btn.edit:hover { border-color: #7a86c8; color: #9ba6e0; }
+.icon-btn.del:hover  { border-color: var(--red); color: var(--red); }
+
+/* icon glyphs via content */
+.icon-btn[data-tip]::after {
+  display: none;
+}
+
+/* ─── EMPTY STATE ─── */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--muted);
+}
+.empty-state .big {
+  font-family: 'VT323', monospace;
+  font-size: 4rem;
+  color: var(--border2);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+.empty-state p { font-size: 0.8rem; letter-spacing: 0.1em; }
+
+/* ─── TOAST ─── */
+#toast {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--amber);
+  color: var(--amber-glow);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.78rem;
+  padding: 0.6rem 1.1rem;
+  z-index: 10000;
+  display: none;
+  letter-spacing: 0.06em;
+  border-radius: var(--radius);
+  box-shadow: 0 0 16px rgba(232,184,75,0.2);
+}
+#toast.show { display: block; animation: fadeIn 0.15s ease; }
+
+/* ─── EDIT OVERLAY ─── */
+#edit-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.72);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+#edit-overlay.open { display: flex; }
+
+.edit-box {
+  background: var(--surface);
+  border: 1px solid var(--amber);
+  width: 100%;
+  max-width: 520px;
+  padding: 1.5rem;
+  box-shadow: 0 0 30px rgba(232,184,75,0.15);
+}
+
+.edit-box h3 {
+  font-family: 'VT323', monospace;
+  font-size: 1.6rem;
+  color: var(--amber-glow);
+  margin-bottom: 1rem;
+  letter-spacing: 0.1em;
+}
+
+.edit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 0; }
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.vault-card { animation: fadeIn 0.18s ease; }
+
+/* ─── FOOTER ─── */
+footer {
+  text-align: center;
+  padding: 2rem;
+  font-size: 0.62rem;
+  color: var(--border2);
+  letter-spacing: 0.2em;
+  border-top: 1px solid var(--border);
+  margin-top: 3rem;
+}
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 600px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .edit-grid  { grid-template-columns: 1fr; }
+  main { padding: 1rem; }
+  header { padding: 0 1rem; }
+  .vault-card { grid-template-columns: 1fr auto; }
+  .card-index { display: none; }
+}
+
+/* blinking cursor effect on logo */
+.cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.4rem;
+  background: var(--amber);
+  vertical-align: middle;
+  margin-left: 3px;
+  animation: blink 1s step-end infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-main">URL VAULT<span class="cursor"></span></div>
+      <div class="logo-sub">Personal Link Archive — v1.0</div>
+    </div>
+    <div class="header-stats">
+      <div class="stat-item">STORED: <span id="s-total">0</span></div>
+      <div class="stat-item">WORK: <span id="s-work">0</span></div>
+      <div class="stat-item">TOOLS: <span id="s-tools">0</span></div>
+      <div class="stat-item">LEARN: <span id="s-learn">0</span></div>
+    </div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main>
+
+  <!-- ADD FORM -->
+  <div class="section-label">// ADD NEW ENTRY</div>
+  <div class="form-block">
+    <div class="form-grid">
+      <div class="field">
+        <label>Site name</label>
+        <input id="f-name" type="text" placeholder="e.g. GitHub">
+      </div>
+      <div class="field">
+        <label>URL</label>
+        <input id="f-url" type="url" placeholder="https://...">
+      </div>
+      <div class="field">
+        <label>Category</label>
+        <select id="f-cat">
+          <option value="work">Work</option>
+          <option value="social">Social</option>
+          <option value="tools">Tools</option>
+          <option value="learn">Learn</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Note (optional)</label>
+        <input id="f-note" type="text" placeholder="Short description…">
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="add-btn">[ SAVE ENTRY ]</button>
+      <button class="btn btn-ghost" id="clear-btn">[ CLEAR ]</button>
+    </div>
+  </div>
+
+  <!-- SEARCH + FILTER -->
+  <div class="section-label">// VAULT CONTENTS</div>
+  <div class="toolbar">
+    <div class="search-wrap">
+      <span class="search-prefix">&gt;_</span>
+      <input id="search-input" type="text" placeholder="search entries...">
+    </div>
+    <div class="filter-chips" id="filter-chips"></div>
+  </div>
+
+  <!-- LIST -->
+  <div class="vault-list" id="vault-list"></div>
+
+</main>
+
+<!-- EDIT OVERLAY -->
+<div id="edit-overlay">
+  <div class="edit-box">
+    <h3>// EDIT ENTRY</h3>
+    <div class="edit-grid">
+      <div class="field">
+        <label>Site name</label>
+        <input id="e-name" type="text">
+      </div>
+      <div class="field">
+        <label>URL</label>
+        <input id="e-url" type="url">
+      </div>
+      <div class="field">
+        <label>Category</label>
+        <select id="e-cat">
+          <option value="work">Work</option>
+          <option value="social">Social</option>
+          <option value="tools">Tools</option>
+          <option value="learn">Learn</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Note</label>
+        <input id="e-note" type="text">
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="update-btn">[ UPDATE ]</button>
+      <button class="btn btn-ghost" id="cancel-edit-btn">[ CANCEL ]</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<footer>
+  URL VAULT &nbsp;·&nbsp; DATA STORED LOCALLY &nbsp;·&nbsp; NO CLOUD &nbsp;·&nbsp; NO TRACKING
+</footer>
+
+<script src="vault.js"></script>
+</body>
+</html>
